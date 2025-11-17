@@ -1,0 +1,4 @@
+r: 8
+lora_alpha: 16
+use_dora: false
+target_modules: ["query", "value"]

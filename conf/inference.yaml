@@ -1,0 +1,7 @@
+checkpoint_path: "/scratch/user/zahidhussain909/esm3-darpins/finetuned_models/esm3_lora_delete.pt"
+test_fasta_path: "/scratch/user/zahidhussain909/esm3-darpins/fasta/test.fasta"
+output_csv: "/scratch/user/zahidhussain909/esm3-darpins/Scripts/logs/LoRA_eval_random.csv"
+batch_size: 4
+mask_positions: [33, 35, 36, 38, 46, 47, 66, 68, 69, 71, 79, 80, 99, 101, 102, 104, 112, 113]
+use_fixed_masking: false
+mask_prob: 0.15

@@ -1,22 +1,19 @@
-import torch
 import csv
+
+import hydra
+import torch
+from omegaconf import DictConfig
+from torch import nn
+from torch.utils.data import DataLoader
+
+from esm.data import FastaBatchedDataset
 from esm.models.esm3 import ESM3
 from esm.tokenization.sequence_tokenizer import EsmSequenceTokenizer
-from esm.data import FastaBatchedDataset
-from torch.utils.data import DataLoader
-from torch import nn
 
-# Configuration
-CHECKPOINT_PATH = "/scratch/user/zahidhussain909/esm3-darpins/finetuned_models/esm3_lora_delete.pt"
-TEST_FASTA_PATH = "/scratch/user/zahidhussain909/esm3-darpins/fasta/test.fasta"
-OUTPUT_CSV = "/scratch/user/zahidhussain909/esm3-darpins/Scripts/logs/LoRA_eval_random.csv"
-BATCH_SIZE = 4
-MASK_POSITIONS = [33, 35, 36, 38, 46, 47, 66, 68, 69, 71, 79, 80, 99, 101, 102, 104, 112, 113]
-USE_FIXED_MASKING = False  # Set to False to use random masking
-MASK_PROB = 0.15
 
 def get_device():
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 def load_model(checkpoint_path: str, device: torch.device) -> ESM3:
     print("Loading Model")
@@ -31,6 +28,7 @@ def load_model(checkpoint_path: str, device: torch.device) -> ESM3:
     print("Model Load Complete")
     return model
 
+
 def get_dataloader(fasta_path: str, batch_size: int, device: torch.device):
     tokenizer = EsmSequenceTokenizer()
 
@@ -41,8 +39,11 @@ def get_dataloader(fasta_path: str, batch_size: int, device: torch.device):
         return labels, seqs, tokens
 
     dataset = FastaBatchedDataset.from_file(fasta_path)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    loader = DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn
+    )
     return loader, tokenizer
+
 
 def apply_fixed_masking(tokens: torch.Tensor, positions: list[int], mask_token_id: int):
     print("Applying Fixed Masking")
@@ -55,6 +56,7 @@ def apply_fixed_masking(tokens: torch.Tensor, positions: list[int], mask_token_i
     masked[mask] = mask_token_id
     return masked, mask
 
+
 def apply_random_masking(tokens: torch.Tensor, mask_token_id: int, mask_prob: float):
     print("Applying Random Masking")
     masked = tokens.clone()
@@ -64,7 +66,13 @@ def apply_random_masking(tokens: torch.Tensor, mask_token_id: int, mask_prob: fl
     masked[mask] = mask_token_id
     return masked, mask
 
-def evaluate(model: ESM3, tokenizer: EsmSequenceTokenizer, dataloader: DataLoader, output_csv: str):
+
+def evaluate(
+    model: ESM3,
+    tokenizer: EsmSequenceTokenizer,
+    dataloader: DataLoader,
+    cfg: DictConfig,
+):
     pad_id = tokenizer.pad_token_id
     loss_fn = nn.CrossEntropyLoss(ignore_index=pad_id)
 
@@ -72,16 +80,28 @@ def evaluate(model: ESM3, tokenizer: EsmSequenceTokenizer, dataloader: DataLoade
     total_masked_tokens = 0
     total_correct_preds = 0
 
-    with open(output_csv, "w", newline="") as csvfile:
+    with open(cfg.output_csv, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["sequence_id", "position", "original_token", "predicted_token", "batch_loss"])
+        writer.writerow(
+            [
+                "sequence_id",
+                "position",
+                "original_token",
+                "predicted_token",
+                "batch_loss",
+            ]
+        )
         print("Starting Evaluation")
         with torch.no_grad():
             for _, (labels, _, tokens) in enumerate(dataloader):
-                if USE_FIXED_MASKING:
-                    masked_tokens, mask = apply_fixed_masking(tokens, MASK_POSITIONS, tokenizer.mask_token_id)
+                if cfg.use_fixed_masking:
+                    masked_tokens, mask = apply_fixed_masking(
+                        tokens, cfg.mask_positions, tokenizer.mask_token_id
+                    )
                 else:
-                    masked_tokens, mask = apply_random_masking(tokens, tokenizer.mask_token_id, MASK_PROB)
+                    masked_tokens, mask = apply_random_masking(
+                        tokens, tokenizer.mask_token_id, cfg.mask_prob
+                    )
 
                 if mask.sum().item() == 0:
                     continue
@@ -108,7 +128,15 @@ def evaluate(model: ESM3, tokenizer: EsmSequenceTokenizer, dataloader: DataLoade
                 for idx in range(positions.size(0)):
                     b, pos = positions[idx].tolist()
                     seq_id = labels[b]
-                    writer.writerow([seq_id, pos, orig_tokens[idx], pred_tokens[idx], f"{loss_val.item():.4f}"])
+                    writer.writerow(
+                        [
+                            seq_id,
+                            pos,
+                            orig_tokens[idx],
+                            pred_tokens[idx],
+                            f"{loss_val.item():.4f}",
+                        ]
+                    )
 
         if total_masked_tokens > 0:
             avg_loss = total_loss_value / total_masked_tokens
@@ -117,12 +145,15 @@ def evaluate(model: ESM3, tokenizer: EsmSequenceTokenizer, dataloader: DataLoade
         else:
             print("No masked tokens were evaluated; cannot compute loss or accuracy.")
 
-def main():
+
+@hydra.main(config_path="../conf", config_name="inference")
+def main(cfg: DictConfig):
     device = get_device()
-    model = load_model(CHECKPOINT_PATH, device)
-    dataloader, tokenizer = get_dataloader(TEST_FASTA_PATH, BATCH_SIZE, device)
-    evaluate(model, tokenizer, dataloader, OUTPUT_CSV)
+    model = load_model(cfg.checkpoint_path, device)
+    dataloader, tokenizer = get_dataloader(cfg.test_fasta_path, cfg.batch_size, device)
+    evaluate(model, tokenizer, dataloader, cfg)
     print("Completed Evaluation")
+
 
 if __name__ == "__main__":
     main()

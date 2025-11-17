@@ -39,11 +39,6 @@ LoRA freezes the pre-trained model weights and injects trainable rank decomposit
 DoRA is a variant of LoRA that decomposes the pre-trained weights into two components, magnitude and direction, and applies LoRA to the direction component. This can lead to better performance and more stable training.
 
 - **Script**: `esm3_lora.py`
-- **Configuration**: The `LoraConfig` in the script allows you to switch between LoRA and DoRA and configure the following key parameters:
-    - `r`: The rank of the update matrices.
-    - `lora_alpha`: The scaling factor for the LoRA updates.
-    - `use_dora`: Set to `True` to use DoRA or `False` for standard LoRA.
-    - `target_modules`: The modules to which the LoRA updates are applied.
 
 ---
 
@@ -63,42 +58,46 @@ This section outlines the steps to prepare DARPin sequences and fine-tune the ES
 
 ### Step 0: Installation
 
-Create a conda environment and activate it:
+This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
-```bash
-conda create -n esm3 python=3.9 -y
-conda activate esm3
-```
+1.  **Install Poetry:**
+    ```bash
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
 
-Then, install the necessary packages and clone the repository:
-
-```bash
-pip install esm
-git clone https://github.com/Zahid8/ESM3-Adapters.git
-cd Scripts
-```
+2.  **Clone the repository and install dependencies:**
+    ```bash
+    git clone https://github.com/Zahid8/ESM3-Adapters.git
+    cd ESM3-Adapters
+    poetry install
+    ```
 
 ### Step 1: Generate FASTA from Scored Sequences
 
 Run the FASTA generation script to select the top sequences by score:
 
 ```bash
-python3 make_fasta.py
+poetry run python Scripts/make_fasta.py
 ```
 
 This script reads a CSV file with `Sequence` and `Score` columns, sorts by score, and writes the top sequences to `fasta/darpin.fasta`.
 
 ### Step 2: Train the Model
 
-Choose one of the fine-tuning strategies:
+Choose one of the fine-tuning strategies. The configuration for each script is managed by [Hydra](https://hydra.cc/). You can override the default parameters from the command line.
 
 - **LoRA or DoRA**:
   ```bash
-  python3 esm3_lora.py
+  poetry run python Scripts/esm3_lora.py
   ```
+  To change the LoRA rank, for example:
+  ```bash
+  poetry run python Scripts/esm3_lora.py lora.r=16
+  ```
+
 - **Full Model Fine-tuning**:
   ```bash
-  python3 ESM3_fullmodel_finetune.py
+  poetry run python Scripts/ESM3_fullmodel_finetune.py
   ```
 
 ### Step 3: Run Inference
@@ -106,7 +105,19 @@ Choose one of the fine-tuning strategies:
 To perform inference on the fine-tuned model, run:
 
 ```bash
-python3 esm3_model_inference.py
+poetry run python Scripts/esm3_inference.py
+```
+
+---
+
+## Configuration
+
+This project uses [Hydra](https://hydra.cc/) for configuration management. The configuration files are located in the `conf/` directory.
+
+You can override any configuration parameter from the command line. For example, to change the learning rate for the LoRA fine-tuning script, you can run:
+
+```bash
+poetry run python Scripts/esm3_lora.py learning_rate=1e-5
 ```
 
 ---

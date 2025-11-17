@@ -1,69 +1,50 @@
-[project]
+[tool.poetry]
 name = "esm"
 version = "3.2.0"
 description = "EvolutionaryScale open model repository"
+authors = ["EvolutionaryScale Team"]
+license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.10"
-license = {file = "LICENSE.txt"}
-
-authors = [
-  {name = "EvolutionaryScale Team"}
-]
-
-maintainers = [
-  {name = "Zeming Lin", email = "zeming+esm@evolutionaryscale.ai" }
-]
-
+homepage = "https://github.com/Zahid8/ESM3-Adapters"
+repository = "https://github.com/Zahid8/ESM3-Adapters"
+keywords = ["protein language model", "esm", "bioinformatics"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Topic :: Scientific/Engineering :: Bio-Informatics",
-  "Programming Language :: Python :: 3.10",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3.10",
 ]
+packages = [{include = "esm", from = "src"}]
 
-dependencies = [
-  "torch>=2.2.0",
-  "torchvision",
-  "torchtext",
-  "transformers<4.48.2",
-  "ipython",
-  "einops",
-  "biotite>=1.0.0",
-  "msgpack-numpy",
-  "biopython",
-  "scikit-learn",
-  "brotli",
-  "attrs",
-  "pandas",
-  "cloudpathlib",
-  "tenacity",
-  "zstd"
-]
+[tool.poetry.dependencies]
+python = ">=3.10"
+torch = ">=2.2.0"
+torchvision = "*"
+torchtext = "*"
+transformers = "<4.48.2"
+ipython = "*"
+einops = "*"
+biotite = ">=1.0.0"
+msgpack-numpy = "*"
+biopython = "*"
+scikit-learn = "*"
+brotli = "*"
+attrs = "*"
+pandas = "*"
+cloudpathlib = "*"
+tenacity = "*"
+zstd = "*"
 
-[tool.setuptools]
-package-dir = {"" = "."}
-include-package-data = true
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+ruff = "*"
+hydra-core = "*"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["esm*"]
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[tool.setuptools.package-data]
-esm = ["data/*"]
+[tool.ruff]
+line-length = 88
 
-[tool.pixi.project]
-channels = ["conda-forge"]
-platforms = ["linux-64"]
-
-# These are build dependencies, to ensure pip support, keep run-time deps above in `dependencies`
-[tool.pixi.dependencies]
-pkg-config = "*"
-cmake = "*"
-pip = "*"
-twine = "*"
-
-[tool.pixi.pypi-dependencies]
-esm = { path = ".", editable = true }
-
-[tool.pixi.tasks]
-build-wheel = "python -m pip wheel --no-deps -w dist ."
-upload-wheel = "python -m twine upload --repository pypi"
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]

@@ -1,11 +1,13 @@
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
 import math
+import os
+
+import matplotlib.pyplot as plt
+import pandas as pd
 
 # Constants
-FASTA_FILENAME = '/content/filtered_sequences.fasta'
-OUTPUT_DIR = '/scratch/user/zahidhussain909/esm3-darpins/Scripts/logs'
+FASTA_FILENAME = "/content/filtered_sequences.fasta"
+OUTPUT_DIR = "/scratch/user/zahidhussain909/esm3-darpins/Scripts/logs"
+
 
 # Parse FASTA into headers and sequences
 def parse_fasta(path):
@@ -31,17 +33,22 @@ def parse_fasta(path):
             sequences.append(seq)
     return headers, sequences
 
-# Plotting mutation 
+
+# Plotting mutation
 def plot_mutation_subplots(seqs, headers, start_idx, end_idx, output_path=None):
     if start_idx < 0 or end_idx >= len(seqs) or start_idx > end_idx:
-        raise IndexError("Invalid index range. Must satisfy 0 <= start_idx <= end_idx < number of sequences.")
+        raise IndexError(
+            "Invalid index range. Must satisfy 0 <= start_idx <= end_idx < number of sequences."
+        )
 
     num_refs = end_idx - start_idx + 1
     seq_length = len(seqs[0])
 
     ncols = math.ceil(math.sqrt(num_refs))
     nrows = math.ceil(num_refs / ncols)
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4*ncols, 3*nrows), sharex=True, sharey=True)
+    fig, axes = plt.subplots(
+        nrows, ncols, figsize=(4 * ncols, 3 * nrows), sharex=True, sharey=True
+    )
     axes = axes.flatten()
 
     for idx_offset, ref_idx in enumerate(range(start_idx, end_idx + 1)):
@@ -74,10 +81,15 @@ def plot_mutation_subplots(seqs, headers, start_idx, end_idx, output_path=None):
         plt.savefig(output_path, dpi=300)
     plt.close(fig)
 
+
 # Extract top mutations
-def get_top_mutation_dataframe(seqs, headers, start_idx, end_idx, top_n=10, output_path=None):
+def get_top_mutation_dataframe(
+    seqs, headers, start_idx, end_idx, top_n=10, output_path=None
+):
     if start_idx < 0 or end_idx >= len(seqs) or start_idx > end_idx:
-        raise IndexError("Invalid index range. Must satisfy 0 <= start_idx <= end_idx < number of sequences.")
+        raise IndexError(
+            "Invalid index range. Must satisfy 0 <= start_idx <= end_idx < number of sequences."
+        )
 
     seq_length = len(seqs[0])
     records = []
@@ -96,17 +108,19 @@ def get_top_mutation_dataframe(seqs, headers, start_idx, end_idx, top_n=10, outp
         sorted_positions = sorted(
             [(i + 1, count) for i, count in enumerate(mutation_counts)],
             key=lambda x: x[1],
-            reverse=True
+            reverse=True,
         )
 
         for pos, count in sorted_positions[:top_n]:
-            records.append({
-                'Ref Index': ref_idx,
-                'Ref Header': headers[ref_idx],
-                'Position': pos,
-                'Mutation Count': count,
-                'Ref Token': reference[pos - 1]
-            })
+            records.append(
+                {
+                    "Ref Index": ref_idx,
+                    "Ref Header": headers[ref_idx],
+                    "Position": pos,
+                    "Mutation Count": count,
+                    "Ref Token": reference[pos - 1],
+                }
+            )
 
     df = pd.DataFrame(records)
 
@@ -114,6 +128,7 @@ def get_top_mutation_dataframe(seqs, headers, start_idx, end_idx, top_n=10, outp
         df.to_csv(output_path, index=False)
 
     return df
+
 
 if __name__ == "__main__":
     # === CONFIG ===
@@ -134,14 +149,19 @@ if __name__ == "__main__":
     headers, seqs = parse_fasta(FASTA_FILENAME)
 
     if do_plot:
-        plot_file = os.path.join(OUTPUT_DIR, 'mutation_plot.png')
-        plot_mutation_subplots(seqs, headers, plot_start_idx, plot_end_idx, output_path=plot_file)
+        plot_file = os.path.join(OUTPUT_DIR, "mutation_plot.png")
+        plot_mutation_subplots(
+            seqs, headers, plot_start_idx, plot_end_idx, output_path=plot_file
+        )
 
     if do_print:
-        csv_file = os.path.join(OUTPUT_DIR, 'top_mutations.csv')
+        csv_file = os.path.join(OUTPUT_DIR, "top_mutations.csv")
         df_top_mutations = get_top_mutation_dataframe(
-            seqs, headers, print_start_idx, print_end_idx,
+            seqs,
+            headers,
+            print_start_idx,
+            print_end_idx,
             top_n=top_n_mutations,
-            output_path=csv_file
+            output_path=csv_file,
         )
         print(df_top_mutations.tail(50))

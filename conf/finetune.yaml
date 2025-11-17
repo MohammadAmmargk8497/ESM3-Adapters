@@ -1,0 +1,12 @@
+train_fasta: "/scratch/user/zahidhussain909/esm3-darpins/fasta/train.fasta"
+test_fasta: "/scratch/user/zahidhussain909/esm3-darpins/fasta/test.fasta"
+log_dir: "/scratch/user/zahidhussain909/esm3-darpins/Scripts/logs"
+train_log_csv: "${log_dir}/full_model_finetune_log.csv"
+model_save_dir: "/scratch/user/zahidhussain909/esm3-darpins/finetuned_models"
+base_save_name: "esm3_full_model_finetune"
+model_name: "esm3_sm_open_v1"
+batch_size: 8
+epochs: 50
+lr: 1e-4
+mask_positions: [33, 35, 36, 38, 46, 47, 66, 68, 69, 71, 79, 80, 99, 101, 102, 104, 112, 113]
+eval_epoch_interval: 10

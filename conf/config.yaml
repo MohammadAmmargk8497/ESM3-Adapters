@@ -1,0 +1,14 @@
+defaults:
+  - lora: default
+
+model_name: "esm3"
+output_dir: "outputs/"
+log_path: "/scratch/user/zahidhussain909/esm3-darpins/Scripts/logs/log_lora.csv"
+train_fasta_path: "/scratch/user/zahidhussain909/esm3-darpins/fasta/train.fasta"
+test_fasta_path: "/scratch/user/zahidhussain909/esm3-darpins/fasta/test.fasta"
+model_save_path: "/scratch/user/zahidhussain909/esm3-darpins/finetuned_models/esm3_lora.pt"
+mask_positions: [85, 73, 134, 58, 91, 61, 41, 53, 124, 127, 94, 89, 122, 62, 40, 102, 78, 86, 82, 106, 143, 109, 98, 101, 116]
+batch_size: 8
+learning_rate: 1e-4
+epochs: 50
+lora_dropout: 0.1
