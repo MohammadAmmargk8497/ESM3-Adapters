@@ -1,6 +1,7 @@
 # Fine-Tuning ESM-3 on Soluble High-Enrichment DARPin Sequences
 
 This repository provides a comprehensive framework for fine-tuning the ESM-3 protein language model on a curated dataset of Designed Ankyrin Repeat Proteins (DARPins). Below, you'll find an overview of ESM, the fine-tuning strategies employed, and instructions on how to run the code.
+<img width="1080" height="1080" alt="674f9301d43c2d67f061b290_667a5bb780d0ada7dc37d1c0_image%20(1)" src="https://github.com/user-attachments/assets/1075c8fb-eff2-4ecc-b75b-cabe7fe683c1" />
 
 ---
 
